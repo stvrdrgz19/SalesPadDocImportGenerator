@@ -3,20 +3,32 @@ from datetime import datetime
 import random
 
 count = 0
-startingDocNum = 10000
-docType = 'INVOICE'
+documentsToGenerate = 200
+startingDocNum = 10200
+docType = 'ORDER'
 customers = [
     'AARONFIT0001',
-    'OCTAGONM0001',
-    'CENTRALI0001',
-    'REDSFOOD0001',
-    'PLAZAONE0001',
-    'STMARYHO0001',
-    'LASERMES0001',
-    'JOHNSONK0001',
-    'BAKERSEM0001',
-    ]
-docID = 'STDINV'
+    'NORTHERN0001',
+    'GREENWAY0001',
+    'ATMORERE0001',
+    'BLUEYOND0001',
+    'WESTSIDE0001',
+    'NORTHCOL0001',
+    'CONTOSOL0001',
+    'HOMEFURN0001',
+    'CELLULAR0001',
+    'FRANCHIS0001',
+    'ASTORSUI0001',
+    'ADAMPARK0001',
+    'NETWORKS0001',
+    'COHOWINE0001',
+    'UNIFIEDW0001',
+    'MARGIEST0001',
+    'DIRECTMA0001',
+    'MIDCITYH0001',
+    'LASERMES0001'
+]
+docID = 'STDORD'
 date_range = pd.date_range(start="2021-09-09", end="2023-10-06")
 min_freight = 0.01
 max_freight = 30.00
@@ -28,12 +40,28 @@ warehouse = 'WAREHOUSE'
 lineNum = '16384'
 componentSeq = 0
 items = [
-    '0XNON1',
-    '0XLOT1',
-    '0XSERIAL1',
-    '0XKIT1'
+    '100XLG',
+    '128 SDRAM',
+    '3-C2804A',
+    '333PROC',
+    '4-E5930A',
+    'CORDG',
+    'HA100G',
+    'HDWR-PNL-0001',
+    'HDWR-SRG-0001',
+    'OM08620',
+    'OM08640',
+    'OM08670',
+    'PHON-ATT-0712',
+    'PHON-FGD-0001',
+    'PHON-FGS-0002',
+    'PHSY-DEL-0001',
+    'PHSY-STD-0001',
+    'SOFT-PHM-0001',
+    'CBA100',
+    '8.4HD'
 ]
-queue = 'POST'
+queue = 'ONE'
 
 # columns headers
 df = pd.DataFrame(columns=[
@@ -52,7 +80,7 @@ df = pd.DataFrame(columns=[
     'Queue'
 ])
 
-while count < 100:
+while count < documentsToGenerate:
     # get next doc num
     nextDocNum = startingDocNum + count
 
@@ -97,4 +125,4 @@ while count < 100:
     count += 1
 
 # Export spreadsheet
-df.to_excel('output4.xlsx', index = False, sheet_name= 'Sheet1')
+df.to_excel('SDImport.xlsx', index = False, sheet_name= 'Sheet1')
