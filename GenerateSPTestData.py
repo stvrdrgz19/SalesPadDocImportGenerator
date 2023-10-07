@@ -1,6 +1,25 @@
 import pandas as pd
 from datetime import datetime
 import random
+import re
+
+def get_date_from_range(startDate, endDate):
+    date_range = pd.date_range(start=startDate, end=endDate)
+    indx = random.sample(range(len(date_range)), 1)
+    date_obj = date_range[indx]
+    date_string = date_obj.strftime('%Y-%m-%d')
+    pattern = r"['\"](.*?)['\"]"
+    date_match = re.findall(pattern, str(date_string))
+    return date_match[0]
+
+def get_freightDiscount(min_val, max_val, threshold):
+    perc = round(random.uniform(0, 100), 0)
+
+    if perc < threshold:
+        return 0.00
+    
+    else:
+        return round(random.uniform(min_val, max_val), 2)
 
 count = 0
 documentsToGenerate = 200
@@ -29,11 +48,6 @@ customers = [
     'LASERMES0001'
 ]
 docID = 'STDORD'
-date_range = pd.date_range(start="2021-09-09", end="2023-10-06")
-min_freight = 0.01
-max_freight = 30.00
-min_discount = 0.01
-max_discount = 10.00
 min_qty = 1
 max_qty = 10
 warehouse = 'WAREHOUSE'
@@ -88,14 +102,11 @@ while count < documentsToGenerate:
     selectedCustomer = random.choice(customers)
 
     # get a random date from the range
-    # date is still being sent as an object index? How to only pass date
-    indx = random.sample(range(len(date_range)), 1)
-    date_obj = date_range[indx]
-    selectedDate = date_obj.strftime("%m/%d/%Y")
+    selectedDate = get_date_from_range("2021-09-09", "2023-10-06")
 
     # get random freight and doscunt from range
-    selectedFreight = round(random.uniform(min_freight, max_freight), 2)
-    selectedDiscount = round(random.uniform(min_discount, max_discount), 2)
+    selectedFreight = get_freightDiscount(5, 25, 66.6)
+    selectedDiscount = get_freightDiscount(5, 25, 66.6)
 
     # get random item from list
     selectedItem = random.choice(items)
@@ -109,7 +120,7 @@ while count < documentsToGenerate:
         'DocType': docType,
         'CustomerNum': selectedCustomer,
         'DocID': docID,
-        'DocDate': selectedDate.astype(str),
+        'DocDate': selectedDate,
         'Freight': selectedFreight,
         'Discount': selectedDiscount,
         'Warehouse': warehouse,
