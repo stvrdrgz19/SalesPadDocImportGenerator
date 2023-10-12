@@ -1,7 +1,6 @@
 # How to
 1. Run the script to generate a file
-1. Upload the xlsx file to drive
-1. Edit the date column to not be an index object
-1. Download as xlsx
 1. Import into SalesPad
-1. Transfer to Invoice/Post as needed
+1. If orders are imported > Invoice most of them
+1. If testing partial invoicing > forward Orders to split by BO qty > Invoice split orders
+1. If testing split documents & recombined documents > forward orders to split by BO Qty > forward to combine some > Invoice
