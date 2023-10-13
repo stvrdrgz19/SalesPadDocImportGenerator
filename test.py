@@ -13,23 +13,30 @@ def get_dates(start, end, doc_count, start_weight, end_weight):
     date_trends = np.random.choice(dates, size=doc_count, p=trend(len(dates), start_weight, end_weight))
     return date_trends
 
-dates = get_dates("2021-10-10", "2021-10-20", 30, 1, 15)
-# dates.sort()
-sorted_indices = np.argsort(dates)
+dates = get_dates("2021-10-10", "2023-10-20", 1000, 1, 15)
 
-sorted_dates = [dates[i] for i in sorted_indices]
+# sorted_indices = np.argsort(dates)
 
+# sorted_dates = [dates[i] for i in sorted_indices]
 
-unique_dates_list = list(set(sorted_dates))
+unique_dates_list = list(set(dates))
+unique_dates_list.sort()
+
+dates.sort()
 
 count_dict = Counter(dates)
 count_list = list(count_dict.values())
 
-for item in count_list:
-    print(item)
+count_list_with_dates = list(count_dict.items())
 
-for date in unique_dates_list:
-    print(date)
+# for item in count_list:
+#     print(item)
+
+# for combo in count_list_with_dates:
+#     print(combo)
+
+# for date in unique_dates_list:
+#     print(date)
 
 fig, ax = plt.subplots()
 
