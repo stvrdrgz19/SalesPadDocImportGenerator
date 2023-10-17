@@ -1,8 +1,18 @@
+import random
 import matplotlib.pyplot as plt
 from collections import Counter
-from classes.dates import get_dates_with_trends
 
-def visualize_data(dates):
+# randomly (within a threshold) determines if a document has freight/discount, as well as how much
+def get_freight_or_discount(min_val, max_val, threshold, dec):
+    percent = round(random.uniform(0, 100), 0)
+
+    if percent < threshold:
+        return 0
+    
+    else:
+        return round(random.uniform(min_val, max_val), dec)
+
+def visualize_data(dates, title):
     # remove duplicate dates
     unique_dates = list(set(dates))
     # sort dates
@@ -16,15 +26,7 @@ def visualize_data(dates):
     ax.plot(unique_dates, count_list, label='Date Trends')
     ax.set_xlabel('Date')
     ax.set_ylabel('Count')
-    ax.set_title('Date Trends')
+    ax.set_title(title)
     ax.legend()
 
     plt.show()
-
-start_date = "2021-10-10"
-end_date = "2023-10-10"
-trend_value = "DownUp"
-date_count = 1000
-dates = get_dates_with_trends(start_date, end_date, trend_value, date_count)
-visualize_data(dates)
-print('Complete...')

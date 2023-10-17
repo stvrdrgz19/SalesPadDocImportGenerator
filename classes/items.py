@@ -102,21 +102,3 @@ class Items:
         ]
 
         return item_list
-    
-    def get_service_items():
-        service_items = []
-
-        for item in Items.get_item_list():
-            if item.type == "Service":
-                service_items.append(item.number)
-
-        return service_items
-    
-    def get_kit_items():
-        kit_items = []
-
-        for item in Items.get_item_list():
-            if item.type == "Kit":
-                kit_items.append(item.number)
-
-        return kit_items
