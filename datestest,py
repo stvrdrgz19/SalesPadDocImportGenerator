@@ -1,0 +1,8 @@
+from classes.dates import get_one_date_per_month_from_range
+from datetime import datetime, timedelta
+
+dates = get_one_date_per_month_from_range('2022-10-18', '2023-10-18')
+
+for date in dates:
+    print(date.strftime("%Y-%m-%d"))
+    print(date)

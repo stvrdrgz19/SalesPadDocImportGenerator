@@ -1,6 +1,7 @@
 import random
 import matplotlib.pyplot as plt
 from collections import Counter
+from datetime import datetime
 
 # randomly (within a threshold) determines if a document has freight/discount, as well as how much
 def get_freight_or_discount(min_val, max_val, threshold, dec):
