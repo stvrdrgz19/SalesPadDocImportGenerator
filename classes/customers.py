@@ -8,8 +8,8 @@ class Customer:
         print(f"Number: {self.number}, Trend: {self.trend}, Scenario: {self.scenario}")
 
     def get_customer_list():
-        networks0001 = Customer("NETWORKS0001", "Increase", "Invoice")
-        # atmorere0001 = Customer("ATMORERE0001", "Decrease", "OrderInvoice")
+        # networks0001 = Customer("NETWORKS0001", "Increase", "Invoice")
+        atmorere0001 = Customer("ATMORERE0001", "Decrease", "Invoice") # originally OrderInvoice scenario
         # unifiedw0001 = Customer("UNIFIEDW0001", "UpDown", "OrderInvoicePartial")
         # adampark0001 = Customer("ADAMPARK0001", "DownUp", "OrderInvoiceSplit")
         # midcityh0001 = Customer("MIDCITYH0001", "Wave", "Invoice")
@@ -30,8 +30,8 @@ class Customer:
         # franchis0001 = Customer("FRANCHIS0001", "Seasonal", "OrderInvoiceSplit")
 
         customer_list = [
-            networks0001
-            # atmorere0001,
+            # networks0001,
+            atmorere0001
             # unifiedw0001,
             # adampark0001,
             # midcityh0001,
