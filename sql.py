@@ -2,7 +2,7 @@ import pandas as pd
 import pyodbc
 import csv
 
-server = 'sp-exporter-02\jayfluegel'
+server = 'SRODRIGUEZ\SQLSERVER2016'
 database = 'TWO'
 username = 'sa'
 password = 'sa'
@@ -13,12 +13,22 @@ connection_string = f"DRIVER={driver};SERVER={server};DATABASE={database};UID={u
 try:
     conn = pyodbc.connect(connection_string)
 except pyodbc.Error as e:
-    print(f"Error connection to the database {e}")
+    print(f"Error connecting to the database {e}")
     exit()
 
-sql_query = """
-SQL SCRIPT
-"""
+start_date = '2022-01-01'
+end_date = '2023-10-30'
+
+sql_query = f"EXEC dbo.spcpGetSalesAndMarginMonthly @Begin_Date = '{start_date}', @End_Date = '{end_date}'"
+
+df = pd.DataFrame(columns=[
+    'year',
+    'month',
+    'subtotal',
+    'total_cost',
+    'margin_amount',
+    'margin_percent'
+])
 
 try:
     cursor = conn.cursor()
@@ -26,14 +36,20 @@ try:
 
     result = cursor.fetchall()
 
-    output_file = 'output\SQLResults.xslx'
+    output_file = 'output\SQLResults.xlsx'
 
-    df = pd.DataFrame(result, columns=[column[0] for column in cursor.description])
+    for row in result:
+        new_row = {
+            'year': row[0],
+            'month': row[1],
+            'subtotal': row[2],
+            'total_cost': row[3],
+            'margin_amount': row[4],
+            'margin_percent': row[5] 
+        }
+        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+
     df.to_csv(output_file, index=False, quoting=csv.QUOTE_NONNUMERIC)
-
-    # for row in result:
-        # print(row)
-
     conn.close()
 
 except pyodbc.Error as e:
