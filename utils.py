@@ -5,6 +5,23 @@ import json
 from classes.dates import get_dates_with_trends, get_one_date_per_month_from_range
 import pandas as pd
 
+df = pd.DataFrame(columns=[
+    'DocNum',
+    'DocType',
+    'CustomerNum',
+    'DocID',
+    'DocDate',
+    'Freight',
+    'Discount',
+    'Warehouse',
+    'LineNum',
+    'ComponentSeq',
+    'ItemNum',
+    'Quantity',
+    'Queue',
+    'QuantityBO'
+])
+
 # randomly (within a threshold) determines if a document has freight/discount, as well as how much
 def get_freight_or_discount(min_val, max_val, threshold, dec):
     percent = round(random.uniform(0, 100), 0)
@@ -46,8 +63,22 @@ def get_next_doc_num():
 
     return next_doc_num
 
+def get_next_generated_import_num():
+    with open("configuration/settings.json", "r") as file:
+        data = json.load(file)
+
+    next_generated_import_num = data["next_generated_import_num"]
+    data["next_generated_import_num"] = next_generated_import_num + 1
+
+    with open("configuration/settings.json", "w") as file:
+        json.dump(data, file, indent = 4)
+
+    return next_generated_import_num
+
 def generate_document_import(customer, count, item_num_range, date_range, freight_range, discount_range, qty_range, warehouses, items, df, has_trend, show_graph):
-    file_name = f"{customer.number}_{customer.trend}_{customer.scenario}.xlsx"
+    # file_name = f"{customer.number}_{customer.trend}_{customer.scenario}.xlsx"
+    next_generated_import_num = get_next_generated_import_num()
+    file_name = f"{next_generated_import_num}_{customer.number}.xlsx"
     i = 0
     base_line_num = 16384
     backorder_qty = 0

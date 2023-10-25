@@ -24,7 +24,7 @@ df = pd.DataFrame(columns=[
 
 document_count = 12
 item_num_range = [1, 5]
-date_range = ["2022-10-18", "2023-10-18"]
+date_range = ["2023-01-01", "2023-10-25"]
 freight_range = [0, 0, 100]
 discount_range = [0, 0, 100]
 qty_range = [1, 5]
