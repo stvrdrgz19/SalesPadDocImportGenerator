@@ -7,6 +7,7 @@ from classes.dates import get_dates_with_trends, get_one_date_per_month_from_ran
 import pandas as pd
 from classes.items import Items
 from enum import Enum
+import os
 
 class DBType(Enum):
     TWO = 1
@@ -28,6 +29,38 @@ df = pd.DataFrame(columns=[
     'Queue',
     'QuantityBO'
 ])
+
+def combine_spreadsheets(delete: bool = False) -> None:
+    path = 'output'
+    dfs = []
+    output_file = f'{path}/Combined_Import.xlsx'
+
+    # remove existing combined document if exists
+    delete_file(output_file)
+
+    for file_name in os.listdir(path):
+        if file_name.endswith('.xlsx'):
+            file_path = os.path.join(path, file_name)
+
+            # read the xlsx file into a dataframe
+            df = pd.read_excel(file_path)
+
+            # append the data to the dfs list
+            dfs.append(df)
+            if delete:
+                delete_file(file_path)
+
+    combined_df = pd.concat(dfs, ignore_index=True)
+
+    # output the combined data to a new xlsx sheet
+    combined_df.to_excel(output_file, index=False, sheet_name="Sheet1")
+    print(f"Spreadsheets combined to: {output_file}")
+
+def delete_file(file_path: str) -> None:
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    else:
+        print(f"File '{file_path}' does not exist.")
 
 def get_sql_connection(server, database, username, password):
     driver = '{ODBC Driver 17 for SQL Server}'

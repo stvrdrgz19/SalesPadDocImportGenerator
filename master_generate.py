@@ -1,9 +1,9 @@
 import pandas as pd
 # import utils
 import document_import_generation as dig
-from utils import DBType, get_customers, get_items
+from utils import DBType, get_customers, get_items, combine_spreadsheets
 
-db_type = DBType.TWO
+db_type = DBType.TWOMB
 
 customers = get_customers(db_type)
 # customers = ['CONNIEAME000471']
@@ -50,3 +50,5 @@ for customer in customers:
         has_trend,
         show_graph
     )
+
+combine_spreadsheets(True)
