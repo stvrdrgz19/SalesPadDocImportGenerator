@@ -1,9 +1,16 @@
 import random
+import pyodbc
 import matplotlib.pyplot as plt
 from collections import Counter
 import json
 from classes.dates import get_dates_with_trends, get_one_date_per_month_from_range
 import pandas as pd
+from classes.items import Items
+from enum import Enum
+
+class DBType(Enum):
+    TWO = 1
+    TWOMB = 2
 
 df = pd.DataFrame(columns=[
     'DocNum',
@@ -21,6 +28,57 @@ df = pd.DataFrame(columns=[
     'Queue',
     'QuantityBO'
 ])
+
+def get_sql_connection(server, database, username, password):
+    driver = '{ODBC Driver 17 for SQL Server}'
+    connection_string = f"DRIVER={driver};SERVER={server};DATABASE={database};UID={username};PWD={password}"
+    return pyodbc.connect(connection_string)
+
+def get_items(db_type: DBType) -> list:
+    conn = get_sql_connection('SRODRIGUEZ\SQLSERVER2016', db_type.name, 'sa', 'sa')
+    cursor = conn.cursor()
+
+    if db_type == DBType.TWO:
+        count = 556
+    else:
+        count = 268
+
+    sql = f"""
+        SELECT 
+            ITEMNMBR,
+            CASE 
+                WHEN ITEMTYPE = 1 THEN 'Inventory'
+                WHEN ITEMTYPE = 3 THEN 'Kit'
+                WHEN ITEMTYPE = 5 THEN 'Service'
+            END AS ItemTypeLabel
+        FROM IV00101
+        WHERE DEX_ROW_ID > {count};
+        """
+    
+    cursor.execute(sql)
+    rows = cursor.fetchall()
+    conn.close()
+
+    item_list = []
+    for row in rows:
+        item = Items(*row)
+        item_list.append(item)
+
+    return item_list
+
+def get_customers(db_type: DBType) -> list:
+    conn = get_sql_connection('SRODRIGUEZ\SQLSERVER2016', db_type.name, 'sa', 'sa')
+    cursor = conn.cursor()
+
+    sql = 'SELECT CUSTNMBR FROM RM00101 WHERE DEX_ROW_ID > 104'
+
+    cursor.execute(sql)
+    rows = cursor.fetchall()
+    conn.close()
+
+    customer_list = [', '.join(str(item).strip() for item in row) for row in rows]
+
+    return customer_list
 
 # randomly (within a threshold) determines if a document has freight/discount, as well as how much
 def get_freight_or_discount(min_val, max_val, threshold, dec):
@@ -51,7 +109,25 @@ def visualize_data(dates, title):
 
     plt.show()
 
-def get_next_doc_num():
+def get_doc_num_start_from_type(type):
+    if type == 'ORDER':
+        return 'ORDST'
+    if type == 'INVOICE':
+        return 'STDINV'
+    if type == 'RETURN':
+        return 'RTN'
+    else:
+        return 'ERROR'
+
+def get_next_doc_num(type):
+    doc_num_start = get_doc_num_start_from_type(type)
+    doc_num = doc_num_start.ljust(15, '0')
+    next_doc_num = str(get_next_doc_num_from_settings())
+    trimmed_doc_num = doc_num[:-len(next_doc_num)]
+    end_doc_num = trimmed_doc_num + next_doc_num
+    return end_doc_num
+
+def get_next_doc_num_from_settings():
     with open("configuration/settings.json", "r") as file:
         data = json.load(file)
 
@@ -79,7 +155,6 @@ def generate_document_import(customer, count, item_num_range, date_range, freigh
     # file_name = f"{customer.number}_{customer.trend}_{customer.scenario}.xlsx"
     next_generated_import_num = get_next_generated_import_num()
     file_name = f"{next_generated_import_num}_{customer.number}.xlsx"
-    i = 0
     base_line_num = 16384
     backorder_qty = 0
 
@@ -108,7 +183,7 @@ def generate_document_import(customer, count, item_num_range, date_range, freigh
         doc_id = "STDORD"
 
     for date in dates:
-        doc_num = get_next_doc_num()
+        doc_num = get_next_doc_num('INVOICE')
         freight = get_freight_or_discount(freight_range[0], freight_range[1], freight_range[2], 2)
         discount = get_freight_or_discount(discount_range[0], discount_range[1], discount_range[2], 2)
         warehouse = random.choice(warehouses)
@@ -142,6 +217,4 @@ def generate_document_import(customer, count, item_num_range, date_range, freigh
             }
 
             df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-        i += 1
-    
     df.to_excel(f"output/{file_name}", index = False, sheet_name = "Sheet1")

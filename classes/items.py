@@ -46,12 +46,12 @@ class Items:
         chair1001 = Items("CHAIR-1001", "Inventory")
         chair2002 = Items("CHAIR-2002", "Inventory")
         chair3003 = Items("CHAIR-3003", "Inventory")
-        # supp1001 = Items("SUPP-1001", "Service")
-        # supp2002 = Items("SUPP-2002", "Service")
-        # supp3003 = Items("SUPP-3003", "Service")
-        # dcp1001 = Items("DCP-1001", "Kit")
-        # dcp2002 = Items("DCP-2002", "Kit")
-        # dcp3003 = Items("DCP-3003", "Kit")
+        supp1001 = Items("SUPP-1001", "Service")
+        supp2002 = Items("SUPP-2002", "Service")
+        supp3003 = Items("SUPP-3003", "Service")
+        dcp1001 = Items("DCP-1001", "Kit")
+        dcp2002 = Items("DCP-2002", "Kit")
+        dcp3003 = Items("DCP-3003", "Kit")
 
         item_list = [
             ssd128,
@@ -93,12 +93,12 @@ class Items:
             chair1001,
             chair2002,
             chair3003,
-            # supp1001,
-            # supp2002,
-            # supp3003,
-            # dcp1001,
-            # dcp2002,
-            # dcp3003
+            supp1001,
+            supp2002,
+            supp3003,
+            dcp1001,
+            dcp2002,
+            dcp3003
         ]
 
         return item_list

@@ -1,5 +1,4 @@
 import pandas as pd
-import utils
 import os
 
 # path of the xlsx files to combine
