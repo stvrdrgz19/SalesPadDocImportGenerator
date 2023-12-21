@@ -5,7 +5,6 @@ from collections import Counter
 import json
 from classes.dates import get_dates_with_trends, get_one_date_per_month_from_range
 import pandas as pd
-from classes.items import Items
 from enum import Enum
 import os
 
