@@ -1,12 +1,10 @@
 import pandas as pd
-# import utils
 import document_import_generation as dig
 from utils import DBType, get_customers, get_items, combine_spreadsheets
 
 db_type = DBType.TWOMB
 
 customers = get_customers(db_type)
-# customers = ['CONNIEAME000471']
 df = pd.DataFrame(columns=[
     'DocNum',
     'DocType',

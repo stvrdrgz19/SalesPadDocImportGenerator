@@ -13,6 +13,24 @@ class DBType(Enum):
     TWO = 1
     TWOMB = 2
 
+class DocTypes(Enum):
+    Invoice = 1
+    Return = 2
+    Order = 3
+
+class SettingTypes(Enum):
+    Document = 1
+    Import = 2
+
+class Trends(Enum):
+    Increase = 1
+    Decrease = 2
+    UpDown = 3
+    DownUp = 4
+    Wave = 5
+    Seasonal = 6
+    Churned = 7
+
 df = pd.DataFrame(columns=[
     'DocNum',
     'DocType',
@@ -155,99 +173,48 @@ def get_doc_num_start_from_type(type):
 def get_next_doc_num(type):
     doc_num_start = get_doc_num_start_from_type(type)
     doc_num = doc_num_start.ljust(15, '0')
-    next_doc_num = str(get_next_doc_num_from_settings())
+    next_doc_num = str(get_next_num(SettingTypes.Document))
     trimmed_doc_num = doc_num[:-len(next_doc_num)]
     end_doc_num = trimmed_doc_num + next_doc_num
     return end_doc_num
 
-def get_next_doc_num_from_settings():
+# def get_next_doc_num_from_settings():
+#     with open("configuration/settings.json", "r") as file:
+#         data = json.load(file)
+
+#     next_doc_num = data["next_doc_num"]
+#     data["next_doc_num"] = next_doc_num + 1
+
+#     with open("configuration/settings.json", "w") as file:
+#         json.dump(data, file, indent = 4)
+
+#     return next_doc_num
+
+# def get_next_generated_import_num():
+#     with open("configuration/settings.json", "r") as file:
+#         data = json.load(file)
+
+#     next_generated_import_num = data["next_generated_import_num"]
+#     data["next_generated_import_num"] = next_generated_import_num + 1
+
+#     with open("configuration/settings.json", "w") as file:
+#         json.dump(data, file, indent = 4)
+
+#     return next_generated_import_num
+
+def get_next_num(type: SettingTypes) -> str:
     with open("configuration/settings.json", "r") as file:
         data = json.load(file)
 
-    next_doc_num = data["next_doc_num"]
-    data["next_doc_num"] = next_doc_num + 1
+    if type == SettingTypes.Document:
+        next_num = data["next_doc_num"]
+        data["next_doc_num"] = next_num + 1
+
+    if type == SettingTypes.Import:
+        next_num = data["next_generated_import_num"]
+        data["next_generated_import_num"] = next_num + 1
 
     with open("configuration/settings.json", "w") as file:
         json.dump(data, file, indent = 4)
 
-    return next_doc_num
-
-def get_next_generated_import_num():
-    with open("configuration/settings.json", "r") as file:
-        data = json.load(file)
-
-    next_generated_import_num = data["next_generated_import_num"]
-    data["next_generated_import_num"] = next_generated_import_num + 1
-
-    with open("configuration/settings.json", "w") as file:
-        json.dump(data, file, indent = 4)
-
-    return next_generated_import_num
-
-def generate_document_import(customer, count, item_num_range, date_range, freight_range, discount_range, qty_range, warehouses, items, df, has_trend, show_graph):
-    # file_name = f"{customer.number}_{customer.trend}_{customer.scenario}.xlsx"
-    next_generated_import_num = get_next_generated_import_num()
-    file_name = f"{next_generated_import_num}_{customer.number}.xlsx"
-    base_line_num = 16384
-    backorder_qty = 0
-
-    if has_trend:
-        dates = get_dates_with_trends(date_range[0], date_range[1], customer.trend, count)
-    else:
-        dates = get_one_date_per_month_from_range(date_range[0], date_range[1])
-
-    if show_graph:
-        visualize_data(dates, customer.trend)
-
-    if customer.scenario == "OrderInvoicePartial" or customer.scenario == "OrderInvoiceSplit":
-        supportPartial = True
-    else:
-        supportPartial = False
-
-    boQtyPercentThreshold = 75.5
-
-    if customer.scenario == "Invoice":
-        queue = "NEW INVOICE"
-        doc_type = "INVOICE"
-        doc_id = "STDINV"
-    else:
-        queue = "NEW ORDER"
-        doc_type = "ORDER"
-        doc_id = "STDORD"
-
-    for date in dates:
-        doc_num = get_next_doc_num('INVOICE')
-        freight = get_freight_or_discount(freight_range[0], freight_range[1], freight_range[2], 2)
-        discount = get_freight_or_discount(discount_range[0], discount_range[1], discount_range[2], 2)
-        warehouse = random.choice(warehouses)
-        num_of_items = round(random.uniform(item_num_range[0], item_num_range[1]), 0)
-        num_of_rows = 0
-        while num_of_rows < num_of_items:
-            num_of_rows += 1
-            item = random.choice(items)
-            qty = round(random.uniform(qty_range[0], qty_range[1]), 0)
-            if (supportPartial):
-                if item.type == "Inventory":
-                    backorder_qty = get_freight_or_discount(0, qty, boQtyPercentThreshold, 0)
-                else:
-                    backorder_qty = 0
-
-            new_row = {
-                'DocNum': doc_num,
-                'DocType': doc_type,
-                'CustomerNum': customer.number,
-                'DocID': doc_id,
-                'DocDate': date,
-                'Freight': freight,
-                'Discount': discount,
-                'Warehouse': warehouse,
-                'LineNum': base_line_num * num_of_rows,
-                'ComponentSeq': 0,
-                'ItemNum': item.number,
-                'Quantity': qty,
-                'Queue': queue,
-                'QuantityBO': backorder_qty
-            }
-
-            df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-    df.to_excel(f"output/{file_name}", index = False, sheet_name = "Sheet1")
+    return next_num

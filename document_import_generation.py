@@ -1,29 +1,45 @@
 import utils
 import random
 import pandas as pd
-from enum import Enum
 
-customer_trends = [
-    'Increase',
-    'Decrease',
-    'UpDown',
-    'DownUp',
-    'Wave',
-    'Seasonal',
-    'Churned'
-]
+def generate_import_files(
+        customer: str,
+        doc_type: utils.DocTypes,
+        doc_count_range: tuple,
+        item_count_range: tuple,
+        date_range: tuple,
+        freight_range: tuple,
+        discount_range: tuple,
+        qty_range: tuple,
+        warehouses: list,
+        items: list,
+        df: None,
+        has_trend: bool,
+        show_graph: bool
+) -> None:
+    next_generated_import_num = utils.get_next_doc_num(utils.SettingTypes.Import)
+    base_line_num = 16384
+    default_bo_qty = 0
+    trend = random.choice([member.name for member in utils.Trends])
+    scenario = doc_type.name
+    count = random.randint(doc_count_range[0], doc_count_range[1])
+    file_name = f"{next_generated_import_num}_{customer}_{trend}_{doc_type.name}_{count}.xlsx"
 
-class DocTypes(Enum):
-    Invoice = 1
-    Return = 2
-    Order = 3
+    if has_trend:
+        dates = utils.get_dates_with_trends(date_range[0], date_range[1], trend, count)
+    else:
+        dates = utils.get_one_date_per_month_from_range(date_range[0], date_range[1])
+
+    if show_graph:
+        utils.visualize_data(dates, trend)
+
 
 def generate_document_import(customer, document_count_range, item_num_range, date_range, freight_range, discount_range, qty_range, warehouses, items, df, has_trend, show_graph):
     next_generated_import_num = utils.get_next_generated_import_num()
     base_line_num = 16384
     backorder_qty = 0
-    trend = random.choice(customer_trends)
-    scenario = DocTypes.Invoice.name
+    trend = random.choice([member.name for member in utils.Trends])
+    scenario = utils.DocTypes.Invoice.name
     count = random.randint(document_count_range[0], document_count_range[1])
 
     file_name = f"{next_generated_import_num}_{customer}_{trend}_{count}.xlsx"
