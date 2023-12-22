@@ -1,8 +1,12 @@
-# from classes.dates import get_dates_with_trends
+from utils import Trends
+from classes.dates import get_dates_with_trends
+from datetime import datetime
 
-import utils
+dates = get_dates_with_trends('2022-01-01', '2022-01-20', Trends.Increase.name, 10)
+dates.sort()
 
-dates = utils.get_dates_with_trends('2022-01-01', '2022-01-20', 'Increase', 10)
+date_format = "%Y-%m-%d"
 
 for date in dates:
-    print(date)
+    datetime_obj = datetime.utcfromtimestamp(date.tolist() / 1e9)
+    print(datetime_obj.strftime(date_format))

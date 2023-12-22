@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from dateutil.relativedelta import relativedelta
 import random
-from utils import Trends
+import utils
 
 # get a trend based off of weight inputs
 def trend(count, start_weight, end_weight):
@@ -27,15 +27,15 @@ def get_dates_with_trends(start_date, end_date, trend, number_of_docs):
     days = end - start
     number_of_days = days.days
 
-    if trend == Trends.Increase.name:
+    if trend == utils.Trends.Increase.name:
         dates = get_dates(start_date, end_date, number_of_docs, 1, 15)
         return dates
     
-    elif trend == Trends.Decrease.name:
+    elif trend == utils.Trends.Decrease.name:
         dates = get_dates(start_date, end_date, number_of_docs, 15, 1)
         return dates
 
-    if trend == Trends.UpDown.name or trend == Trends.DownUp.name:
+    if trend == utils.Trends.UpDown.name or trend == utils.Trends.DownUp.name:
         days_per_direction = timedelta(days=round(number_of_days/2))
         docs_per_direction = round(number_of_docs/2)
 
@@ -45,7 +45,7 @@ def get_dates_with_trends(start_date, end_date, trend, number_of_docs):
         dates2 = get_dates(second_start_day, end, round(docs_per_direction), 15, 1)
         return np.concatenate((dates1, dates2), axis=0)
     
-    elif trend == Trends.Wave.name:
+    elif trend == utils.Trends.Wave.name:
         days_per_direction = timedelta(days=round(number_of_days/4))
         docs_per_direction = round(number_of_docs/4)
 
@@ -67,7 +67,7 @@ def get_dates_with_trends(start_date, end_date, trend, number_of_docs):
         return np.concatenate((dates_concat_2, dates4), axis=0)
 
     
-    elif trend == Trends.Seasonal.name:
+    elif trend == utils.Trends.Seasonal.name:
         days_per_direction = timedelta(days=round(number_of_days/5))
         docs_per_direction = round(number_of_docs/3)
 
