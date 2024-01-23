@@ -3,11 +3,13 @@ import pyodbc
 import matplotlib.pyplot as plt
 from collections import Counter
 import json
-from classes.dates import get_dates_with_trends, get_one_date_per_month_from_range
 import pandas as pd
 from classes.items import Items
+from classes.ItemsCostPrice import ItemsCostPrice
 from enum import Enum
+from datetime import datetime, timedelta
 import os
+import numpy as np
 
 class DBType(Enum):
     TWO = 1
@@ -117,6 +119,45 @@ def get_items(db_type: DBType) -> list:
 
     return item_list
 
+def get_items_cost_price(db_type: DBType, uofm: str) -> list:
+    conn = get_sql_connection('SRODRIGUEZ\SQLSERVER2016', db_type.name, 'sa', 'sa')
+    cursor = conn.cursor()
+
+    if db_type == DBType.TWO:
+        count = 556
+    else:
+        count = 268
+
+    sql = f"""
+        SELECT 
+            IV00101.ITEMNMBR,
+            IV00108.UOMPRICE,
+            IV00101.CURRCOST,
+            CASE 
+                WHEN IV00101.ITEMTYPE = 1 THEN 'Inventory'
+                WHEN IV00101.ITEMTYPE = 3 THEN 'Kit'
+                WHEN IV00101.ITEMTYPE = 5 THEN 'Service'
+            END AS ItemTypeLabel
+        FROM 
+            IV00101
+        JOIN 
+            IV00108 ON IV00101.ITEMNMBR = IV00108.ITEMNMBR
+            WHERE IV00108.UOFM = '{uofm}'
+            AND IV00101.DEX_ROW_ID > {count}
+            ORDER BY IV00101.ITEMNMBR;
+            """
+    
+    cursor.execute(sql)
+    rows = cursor.fetchall()
+    conn.close()
+
+    item_list = []
+    for row in rows:
+        item = ItemsCostPrice(*row)
+        item_list.append(item)
+
+    return item_list
+
 def get_customers(db_type: DBType) -> list:
     conn = get_sql_connection('SRODRIGUEZ\SQLSERVER2016', db_type.name, 'sa', 'sa')
     cursor = conn.cursor()
@@ -170,37 +211,13 @@ def get_doc_num_start_from_type(type):
     else:
         return 'ERROR'
 
-def get_next_doc_num(type):
+def get_next_doc_num(type, num_type):
     doc_num_start = get_doc_num_start_from_type(type)
     doc_num = doc_num_start.ljust(15, '0')
-    next_doc_num = str(get_next_num(SettingTypes.Document))
+    next_doc_num = str(get_next_num(num_type))
     trimmed_doc_num = doc_num[:-len(next_doc_num)]
     end_doc_num = trimmed_doc_num + next_doc_num
     return end_doc_num
-
-# def get_next_doc_num_from_settings():
-#     with open("configuration/settings.json", "r") as file:
-#         data = json.load(file)
-
-#     next_doc_num = data["next_doc_num"]
-#     data["next_doc_num"] = next_doc_num + 1
-
-#     with open("configuration/settings.json", "w") as file:
-#         json.dump(data, file, indent = 4)
-
-#     return next_doc_num
-
-# def get_next_generated_import_num():
-#     with open("configuration/settings.json", "r") as file:
-#         data = json.load(file)
-
-#     next_generated_import_num = data["next_generated_import_num"]
-#     data["next_generated_import_num"] = next_generated_import_num + 1
-
-#     with open("configuration/settings.json", "w") as file:
-#         json.dump(data, file, indent = 4)
-
-#     return next_generated_import_num
 
 def get_next_num(type: SettingTypes) -> str:
     with open("configuration/settings.json", "r") as file:

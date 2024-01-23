@@ -4,57 +4,22 @@ import pandas as pd
 import numpy as np
 from classes.dates import get_dates_with_trends, get_one_date_per_month_from_range
 
-def generate_import_files(
-        customer: str,
-        doc_type: utils.DocTypes,
-        doc_count_range: tuple,
-        item_count_range: tuple,
-        date_range: tuple,
-        freight_range: tuple,
-        discount_range: tuple,
-        qty_range: tuple,
-        warehouses: list,
-        items: list,
-        df: None,
-        has_trend: bool,
-        show_graph: bool
-) -> None:
-    next_generated_import_num = utils.get_next_num(utils.SettingTypes.Import)
-    base_line_num = 16384
-    default_bo_qty = 0
-    trend = random.choice([member.name for member in utils.Trends])
-    scenario = doc_type.name
-    count = random.randint(doc_count_range[0], doc_count_range[1])
-    file_name = f"{next_generated_import_num}_{customer}_{trend}_{doc_type.name}_{count}.xlsx"
-
-    if has_trend:
-        dates = utils.get_dates_with_trends(date_range[0], date_range[1], trend, count)
-    else:
-        dates = utils.get_one_date_per_month_from_range(date_range[0], date_range[1])
-
-    if show_graph:
-        utils.visualize_data(dates, trend)
-
-
 def generate_document_import(customer, document_count_range, item_num_range, date_range, freight_range, discount_range, qty_range, warehouses, items, df, has_trend, show_graph):
-    next_generated_import_num = utils.get_next_num(utils.SettingTypes.Import)
     base_line_num = 16384
     backorder_qty = 0
     trend = random.choice([member.name for member in utils.Trends])
     scenario = utils.DocTypes.Invoice.name
     count = random.randint(document_count_range[0], document_count_range[1])
 
-    file_name = f"{next_generated_import_num}_{customer}_{trend}_{count}.xlsx"
-
     if has_trend:
         dates = get_dates_with_trends(date_range[0], date_range[1], trend, count)
     else:
         dates = get_one_date_per_month_from_range(date_range[0], date_range[1])
 
-    sorted_dates = np.sort(dates)
-
     if show_graph:
         utils.visualize_data(dates, trend)
+
+    sorted_dates = np.sort(dates)
 
     if scenario == "OrderInvoicePartial" or scenario == "OrderInvoiceSplit":
         supportPartial = True
@@ -106,12 +71,11 @@ def generate_document_import(customer, document_count_range, item_num_range, dat
                 'ComponentSeq': 0,
                 'ItemNum': item.number,
                 'Quantity': qty,
+                'UnitPrice': item.price,
+                'UnitCost': item.cost,
                 'Queue': queue,
-                'QuantityBO': backorder_qty,
-                # 'MarginCost': float(item.cost) + 10.00
+                'QuantityBO': backorder_qty
             }
 
             df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-        # i += 1
-    print(file_name)
-    df.to_excel(f"output/{file_name}", index = False, sheet_name = "Sheet1")
+    return df
