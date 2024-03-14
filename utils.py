@@ -151,45 +151,6 @@ def get_items(db_type: DBType) -> list:
 
     return item_list
 
-def get_items_cost_price(db_type: DBType, uofm: str) -> list:
-    conn = get_sql_connection('SRODRIGUEZ\SQLSERVER2016', db_type.name, 'sa', 'sa')
-    cursor = conn.cursor()
-
-    if db_type == DBType.TWO:
-        count = 556
-    else:
-        count = 268
-
-    sql = f"""
-        SELECT 
-            IV00101.ITEMNMBR,
-            IV00108.UOMPRICE,
-            IV00101.CURRCOST,
-            CASE 
-                WHEN IV00101.ITEMTYPE = 1 THEN 'Inventory'
-                WHEN IV00101.ITEMTYPE = 3 THEN 'Kit'
-                WHEN IV00101.ITEMTYPE = 5 THEN 'Service'
-            END AS ItemTypeLabel
-        FROM 
-            IV00101
-        JOIN 
-            IV00108 ON IV00101.ITEMNMBR = IV00108.ITEMNMBR
-            WHERE IV00108.UOFM = '{uofm}'
-            AND IV00101.DEX_ROW_ID > {count}
-            ORDER BY IV00101.ITEMNMBR;
-            """
-    
-    cursor.execute(sql)
-    rows = cursor.fetchall()
-    conn.close()
-
-    item_list = []
-    for row in rows:
-        item = ItemsCostPrice(*row)
-        item_list.append(item)
-
-    return item_list
-
 def get_customers(db_type: DBType) -> list:
     conn = get_sql_connection('SRODRIGUEZ\SQLSERVER2016', db_type.name, 'sa', 'sa')
     cursor = conn.cursor()
