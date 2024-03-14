@@ -1,8 +1,7 @@
 import pandas as pd
 import document_import_generation as dig
-from utils import DBType, get_customers, get_items, combine_spreadsheets, get_items_cost_price
+from utils import DBType, get_customers, get_items, process_excel_files
 from classes.document import Document
-from generate_excel_file import process_excel_files
 
 db_type = DBType.TWO
 
@@ -25,7 +24,6 @@ df = pd.DataFrame(columns=[
     'Queue',
     'QuantityBO',
     'UofM'
-    # 'MarginCost'
 ])
 
 document_count_range = [25, 50]
@@ -36,7 +34,6 @@ discount_range = [0, 50, 85]
 qty_range = [1, 5]
 warehouses = ['WAREHOUSE']
 items = get_items(db_type)
-# items = get_items_cost_price(db_type=db_type, uofm='Each')
 has_trend = True
 show_graph = False
 
