@@ -5,7 +5,6 @@ from collections import Counter
 import json
 import pandas as pd
 from classes.items import Items
-from classes.ItemsCostPrice import ItemsCostPrice
 from enum import Enum
 import os
 
