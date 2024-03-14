@@ -1,50 +1,17 @@
 import utils
 import random
-import pandas as pd
 import numpy as np
 from classes.dates import get_dates_with_trends, get_one_date_per_month_from_range
-
-def generate_import_files(
-        customer: str,
-        doc_type: utils.DocTypes,
-        doc_count_range: tuple,
-        item_count_range: tuple,
-        date_range: tuple,
-        freight_range: tuple,
-        discount_range: tuple,
-        qty_range: tuple,
-        warehouses: list,
-        items: list,
-        df: None,
-        has_trend: bool,
-        show_graph: bool
-) -> None:
-    next_generated_import_num = utils.get_next_num(utils.SettingTypes.Import)
-    base_line_num = 16384
-    default_bo_qty = 0
-    trend = random.choice([member.name for member in utils.Trends])
-    scenario = doc_type.name
-    count = random.randint(doc_count_range[0], doc_count_range[1])
-    file_name = f"{next_generated_import_num}_{customer}_{trend}_{doc_type.name}_{count}.xlsx"
-
-    if has_trend:
-        dates = utils.get_dates_with_trends(date_range[0], date_range[1], trend, count)
-    else:
-        dates = utils.get_one_date_per_month_from_range(date_range[0], date_range[1])
-
-    if show_graph:
-        utils.visualize_data(dates, trend)
-
+from classes.document import Document
+from classes.line import Line
 
 def generate_document_import(customer, document_count_range, item_num_range, date_range, freight_range, discount_range, qty_range, warehouses, items, df, has_trend, show_graph):
-    next_generated_import_num = utils.get_next_num(utils.SettingTypes.Import)
     base_line_num = 16384
     backorder_qty = 0
     trend = random.choice([member.name for member in utils.Trends])
     scenario = utils.DocTypes.Invoice.name
     count = random.randint(document_count_range[0], document_count_range[1])
-
-    file_name = f"{next_generated_import_num}_{customer}_{trend}_{count}.xlsx"
+    unit_of_measures = ['Each', 'Case']
 
     if has_trend:
         dates = get_dates_with_trends(date_range[0], date_range[1], trend, count)
@@ -76,6 +43,8 @@ def generate_document_import(customer, document_count_range, item_num_range, dat
         doc_type = "ORDER"
         doc_id = "STDORD"
 
+    documents = []
+
     for date in sorted_dates:
         doc_num = utils.get_next_doc_num(doc_type, utils.SettingTypes.Document)
         freight = utils.get_freight_or_discount(freight_range[0], freight_range[1], freight_range[2], 2)
@@ -83,6 +52,8 @@ def generate_document_import(customer, document_count_range, item_num_range, dat
         warehouse = random.choice(warehouses)
         num_of_items = round(random.uniform(item_num_range[0], item_num_range[1]), 0)
         num_of_rows = 0
+
+        lines = []
         while num_of_rows < num_of_items:
             num_of_rows += 1
             item = random.choice(items)
@@ -92,26 +63,29 @@ def generate_document_import(customer, document_count_range, item_num_range, dat
                     backorder_qty = utils.get_freight_or_discount(0, qty, boQtyPercentThreshold, 0)
                 else:
                     backorder_qty = 0
-
-            new_row = {
-                'DocNum': doc_num,
-                'DocType': doc_type,
-                'CustomerNum': customer,
-                'DocID': doc_id,
-                'DocDate': date,
-                'Freight': freight,
-                'Discount': discount,
-                'Warehouse': warehouse,
-                'LineNum': base_line_num * num_of_rows,
-                'ComponentSeq': 0,
-                'ItemNum': item.number,
-                'Quantity': qty,
-                'Queue': queue,
-                'QuantityBO': backorder_qty,
-                # 'MarginCost': float(item.cost) + 10.00
-            }
-
-            df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-        # i += 1
-    print(file_name)
-    df.to_excel(f"output/{file_name}", index = False, sheet_name = "Sheet1")
+                    
+            line = Line(
+                line_num=base_line_num * num_of_rows
+                ,component_seq_num=0
+                ,item_num=item.number
+                ,quantity=qty
+                ,quantity_bo=backorder_qty
+                ,uofm=random.choice(unit_of_measures)
+            )
+            lines.append(line)
+            
+        document = Document(
+            doc_num=doc_num
+            ,doc_type=doc_type
+            ,doc_id=doc_id
+            ,customer_num=customer
+            ,doc_date=date
+            ,warehouse=warehouse
+            ,queue=queue
+            ,freight=freight
+            ,discount=discount
+            ,lines=lines
+        )
+        documents.append(document)
+    print(f"{customer} - {len(documents)} documents")
+    return documents

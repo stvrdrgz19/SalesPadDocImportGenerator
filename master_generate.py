@@ -1,6 +1,8 @@
 import pandas as pd
 import document_import_generation as dig
 from utils import DBType, get_customers, get_items, combine_spreadsheets, get_items_cost_price
+from classes.document import Document
+from generate_excel_file import process_excel_files
 
 db_type = DBType.TWO
 
@@ -22,35 +24,47 @@ df = pd.DataFrame(columns=[
     'Quantity',
     'Queue',
     'QuantityBO',
-    'MarginCost'
+    'UofM'
+    # 'MarginCost'
 ])
 
-document_count_range = [40, 50]
+document_count_range = [25, 50]
 item_num_range = [1, 5]
-date_range = ["2022-01-01", "2024-01-08"]
-freight_range = [0, 0, 100]
-discount_range = [0, 0, 100]
+date_range = ["2022-01-01", "2024-03-13"]
+freight_range = [0, 50, 95]
+discount_range = [0, 50, 85]
 qty_range = [1, 5]
 warehouses = ['WAREHOUSE']
-# items = get_items(db_type)
-items = get_items_cost_price(db_type=db_type, uofm='Each')
+items = get_items(db_type)
+# items = get_items_cost_price(db_type=db_type, uofm='Each')
 has_trend = True
 show_graph = False
 
-for customer in customers:
-    dig.generate_document_import(
-        customer,
-        document_count_range,
-        item_num_range,
-        date_range,
-        freight_range,
-        discount_range,
-        qty_range,
-        warehouses,
-        items,
-        df,
-        has_trend,
-        show_graph
-    )
+documents_per_customer = []
+documents = []
 
-combine_spreadsheets(True)
+for customer in customers:
+    documents_per_customer.append(dig.generate_document_import(
+        customer
+        ,document_count_range
+        ,item_num_range
+        ,date_range
+        ,freight_range
+        ,discount_range
+        ,qty_range
+        ,warehouses
+        ,items
+        ,df
+        ,has_trend
+        ,show_graph
+    ))
+
+for document_group in documents_per_customer:
+    for doc in document_group:
+        documents.append(doc)
+
+sorted_documents = sorted(documents, key=Document.sort_by_date)
+document_count = len(sorted_documents)
+
+process_excel_files(df, sorted_documents, True)
+process_excel_files(df, sorted_documents, False)
