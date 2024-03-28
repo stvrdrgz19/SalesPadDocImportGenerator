@@ -5,6 +5,7 @@ from collections import Counter
 import json
 import pandas as pd
 from classes.items import Items
+from classes.item_properties import ItemProperties
 from enum import Enum
 import os
 
@@ -44,7 +45,9 @@ df = pd.DataFrame(columns=[
     'ItemNum',
     'Quantity',
     'Queue',
-    'QuantityBO'
+    'QuantityBO',
+    'UofM',
+    'MarkdownPercent'
 ])
 
 def process_excel_files(df, documents, split):
@@ -59,7 +62,15 @@ def process_excel_files(df, documents, split):
 def generate_excel_files(df, documents, file_name):
     file_path = f"output/{file_name}.xlsx"
     for document in documents:
-        for line in document.lines:
+        num_of_lines = len(document.lines)
+
+        # for line in document.lines:
+        for i, line in enumerate(document.lines):
+            if i < num_of_lines - 1:
+                discount_amount = 0
+            else:
+                discount_amount = document.discount
+
             new_row = {
                 'DocNum': document.doc_num,
                 'DocType': document.doc_type,
@@ -67,7 +78,7 @@ def generate_excel_files(df, documents, file_name):
                 'DocID': document.doc_id,
                 'DocDate': document.doc_date,
                 'Freight': document.freight,
-                'Discount': document.discount,
+                'Discount': discount_amount,
                 'Warehouse': document.warehouse,
                 'LineNum': line.line_num,
                 'ComponentSeq': line.component_seq_num,
@@ -75,7 +86,8 @@ def generate_excel_files(df, documents, file_name):
                 'Quantity': line.quantity,
                 'Queue': document.queue,
                 'QuantityBO': line.quantity_bo,
-                'UofM' : line.uofm
+                'UofM' : line.uofm,
+                'MarkdownPercent' : line.markdown_percent
             }
             
             df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
@@ -147,6 +159,52 @@ def get_items(db_type: DBType) -> list:
     item_list = []
     for row in rows:
         item = Items(*row)
+        item_list.append(item)
+
+    return item_list
+
+def get_items_with_details(db_type: DBType) -> list:
+    conn = get_sql_connection('SRODRIGUEZ\SQLSERVER2016', db_type.name, 'sa', 'sa')
+    cursor = conn.cursor()
+
+    if db_type == DBType.TWO:
+        dex_row_id = 556
+    else:
+        dex_row_id = 268
+
+    sql = f"""
+    SELECT
+        IV00101.ITEMNMBR,
+        IV00101.ITEMDESC,
+        CASE 
+            WHEN IV00101.ITEMTYPE = 1 THEN 'Inventory'
+            WHEN IV00101.ITEMTYPE = 3 THEN 'Kit'
+            WHEN IV00101.ITEMTYPE = 5 THEN 'Service'
+        END AS ItemTypeLabel,
+        IV00101.STNDCOST,
+        IV00101.CURRCOST,
+        MAX(CASE WHEN UOFM = 'EACH' THEN IV00108.UOMPRICE END) AS EACH_UOFM_PRICE,
+        MAX(CASE WHEN UOFM = 'CASE' THEN IV00108.UOMPRICE END) AS CASE_UOFM_PRICE
+    FROM 
+        IV00101
+    JOIN 
+        IV00108 ON IV00101.ITEMNMBR = IV00108.ITEMNMBR
+	WHERE IV00101.DEX_ROW_ID > {dex_row_id}
+    GROUP BY
+        IV00101.ITEMNMBR,
+        IV00101.ITEMDESC,
+        IV00101.ITEMTYPE,
+        IV00101.STNDCOST,
+        IV00101.CURRCOST;
+    """
+    
+    cursor.execute(sql)
+    rows = cursor.fetchall()
+    conn.close()
+
+    item_list = []
+    for row in rows:
+        item = ItemProperties(*row)
         item_list.append(item)
 
     return item_list

@@ -5,7 +5,7 @@ from classes.dates import get_dates_with_trends, get_one_date_per_month_from_ran
 from classes.document import Document
 from classes.line import Line
 
-def generate_document_import(customer, document_count_range, item_num_range, date_range, freight_range, discount_range, qty_range, warehouses, items, df, has_trend, show_graph):
+def generate_document_import(customer, document_count_range, item_num_range, date_range, freight_range, discount_range, markdown_range, qty_range, warehouses, items, has_trend, show_graph, db_type):
     base_line_num = 16384
     backorder_qty = 0
     trend = random.choice([member.name for member in utils.Trends])
@@ -48,7 +48,7 @@ def generate_document_import(customer, document_count_range, item_num_range, dat
     for date in sorted_dates:
         doc_num = utils.get_next_doc_num(doc_type, utils.SettingTypes.Document)
         freight = utils.get_freight_or_discount(freight_range[0], freight_range[1], freight_range[2], 2)
-        discount = utils.get_freight_or_discount(discount_range[0], discount_range[1], discount_range[2], 2)
+        discount_percent = utils.get_freight_or_discount(discount_range[0], discount_range[1], discount_range[2], 2)
         warehouse = random.choice(warehouses)
         num_of_items = round(random.uniform(item_num_range[0], item_num_range[1]), 0)
         num_of_rows = 0
@@ -58,21 +58,33 @@ def generate_document_import(customer, document_count_range, item_num_range, dat
             num_of_rows += 1
             item = random.choice(items)
             qty = round(random.uniform(qty_range[0], qty_range[1]), 0)
+            uofm = random.choice(unit_of_measures)
+            markdown_percent = utils.get_freight_or_discount(markdown_range[0], markdown_range[1], markdown_range[2], 2)
             if (supportPartial):
                 if item.type == "Inventory":
                     backorder_qty = utils.get_freight_or_discount(0, qty, boQtyPercentThreshold, 0)
                 else:
                     backorder_qty = 0
+
+            if uofm == 'Each':
+                line_price = item.each_price
+            else:
+                line_price = item.case_price
                     
             line = Line(
                 line_num=base_line_num * num_of_rows
                 ,component_seq_num=0
-                ,item_num=item.number
+                ,item_num=item.item_number
                 ,quantity=qty
                 ,quantity_bo=backorder_qty
-                ,uofm=random.choice(unit_of_measures)
+                ,uofm=uofm
+                ,markdown_percent=round(markdown_percent, 2)
+                ,price = line_price
             )
             lines.append(line)
+
+        doc_total = sum(line.price for line in lines)
+        discount = round(float(doc_total) * (float(discount_percent)/100), 2)
             
         document = Document(
             doc_num=doc_num
