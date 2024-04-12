@@ -31,6 +31,9 @@ class Trends(Enum):
     Seasonal = 6
     Churned = 7
 
+
+unit_of_measures = ['Each', 'Case']
+
 df = pd.DataFrame(columns=[
     'DocNum',
     'DocType',
@@ -130,6 +133,19 @@ def get_sql_connection(server, database, username, password):
     driver = '{ODBC Driver 17 for SQL Server}'
     connection_string = f"DRIVER={driver};SERVER={server};DATABASE={database};UID={username};PWD={password}"
     return pyodbc.connect(connection_string)
+
+def get_price_levels(db_type: DBType) -> list:
+    conn = get_sql_connection('SRODRIGUEZ\SQLSERVER2016', db_type.name, 'sa', 'sa')
+    cursor = conn.cursor()
+
+    sql = "SELECT PRCLEVEL FROM IV40800 WHERE PRCLEVEL != 'RETAIL'"
+
+    cursor.execute(sql)
+
+    price_levels = [row.PRCLEVEL for row in cursor.fetchall()]
+    conn.close()
+
+    return price_levels
 
 def get_items(db_type: DBType) -> list:
     conn = get_sql_connection('SRODRIGUEZ\SQLSERVER2016', db_type.name, 'sa', 'sa')

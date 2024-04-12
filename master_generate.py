@@ -9,9 +9,9 @@ customers = get_customers(db_type)
 # customers = ['ALYSSAAMB000061']
 # customers = ['ALYSSAAMB000061', 'PAULBYRNE000062', 'DOUGLASLE000063']
 
-document_count_range = [25, 50]
+document_count_range = [25, 70]
 item_num_range = [1, 5]
-date_range = ["2022-01-01", "2024-03-15"]
+date_range = ["2022-01-01", "2024-04-11"]
 freight_range = [0, 50, 95]
 discount_range = [5, 25, 85]
 markdown_range = [5, 25, 85]
